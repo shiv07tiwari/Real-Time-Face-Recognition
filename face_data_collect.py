@@ -35,8 +35,7 @@ while True:
 		count+=1
 		if(count%9==0):
 			face_data.append(face_section)
-		
-	
+			print(len(face_data))
 	cv2.imshow("Image",frame)
 
 	key_pressed = cv2.waitKey(1) & 0xFF
@@ -44,6 +43,9 @@ while True:
 		break
 
 #Convert facelist to numpy array
+if(len(face_data)==0):
+	print("No Data Collected")
+	exit()
 face_data = np.asarray(face_data)
 face_data = face_data.reshape((face_data.shape[0],-1))
 print(face_data.shape)

@@ -5,7 +5,7 @@ import os
 def dist(x1,x2):
 	return np.sqrt(sum((x1-x2)**2))
 
-def knn(X,Y,querypoint,k=3):
+def knn(X,Y,querypoint,k=1):
 	distances = []
 	m = X.shape[0]
 
@@ -16,7 +16,11 @@ def knn(X,Y,querypoint,k=3):
 	distances = sorted(distances) 
 	distances = distances[:k]
 	distances = np.array(distances)
-	return distances
+	new_distances = np.unique(distances[:,1],return_counts=True)
+	max_freq_index = new_distances[1].argmax()
+	prediction = new_distances[0][max_freq_index]
+
+	return prediction
 
 
 
@@ -41,10 +45,10 @@ for x in os.listdir(dataset_path):
 
 X = np.concatenate(face_data,axis=0)
 Y = np.concatenate(face_label, axis=0)
-print("Done")
+
+#Read and Predict
 cam = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
-count=0
 sample_face_data = []
 while True:
 
@@ -62,33 +66,14 @@ while True:
 		offset = 10
 		
 		face_section = frame[y-offset:y+h+offset,x-offset:x+w+offset] 
-		#print(face_section)
+		
 		face_section = cv2.resize(face_section,(100,100))
 		
-		count+=1
-		if(count%9==0 or count==1):
-			sample_face_data.append(face_section)
+		prediction = knn(X,Y,face_section.flatten())
+		cv2.putText(frame,names[prediction],(x,y-10),cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,0),2,cv2.LINE_AA)
 	
 	cv2.imshow("Image",frame)
 	key_pressed = cv2.waitKey(1)  & 0xFF
 	if(key_pressed==ord('q')):
 		break
-	if(len(sample_face_data)==0):
-		continue
-	sample_face = np.asarray(sample_face_data)
-	sample_face = sample_face.reshape((sample_face.shape[0],-1))
 
-	for i in range(sample_face.shape[0]):
-		vals = knn(X,Y,sample_face[i])
-		print(vals)
-		new_vals = np.unique(vals[:,1],return_counts=True)
-		print(new_vals)
-		max_freq_index = new_vals[1].argmax()
-		print(max_freq_index)
-		prediction = new_vals[0][max_freq_index]
-		print(names[prediction])
-# new_vals = np.unique(vals[:,1],return_counts=True)
-
-# max_freq_index = new_vals[1].argmax()
-
-# prediction = new_vals[0][max_freq_index]
